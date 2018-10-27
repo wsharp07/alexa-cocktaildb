@@ -2,7 +2,7 @@
 /* eslint-disable  no-console */
 
 const Alexa = require('ask-sdk');
-const request = require('request');
+const axios = require('axios');
 
 /* INTENT HANDLERS */
 const LaunchRequestHandler = {
@@ -41,21 +41,17 @@ const CocktailHandler = {
     
     const url = `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${cocktail}`;
         
-    request.get(url, (error, response, body) => {
-        // let json = JSON.parse(body);
-        console.log('error:', error); // Print the error if one occurred
-        console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-        console.log('body:', body); // Print the body
+    const getCocktail = async url => {
+      try {
+        const response = await axios.get(url);
+        console.log(response.data);
+        return response.data;
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-        var jsonResponse = JSON.parse(body);
-        var drinkId = jsonResponse.drinks[0].idDrink
-        console.log(drinkId);
-
-        
-        
-    });
-
-    sessionAttributes.speakOutput = `Did you say ${cocktail} ${drinkId}?`
+    sessionAttributes.speakOutput = `Did you say ${cocktail}?`
     sessionAttributes.repromptSpeech = 'Need more help?';
     
     return handlerInput.responseBuilder
