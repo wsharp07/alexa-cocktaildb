@@ -41,8 +41,10 @@ const CocktailHandler = {
     
     return new Promise(resolve => {
       getCocktail(cocktail, data => {
-        var drinkId = data.drinks[0].idDrink;
-        sessionAttributes.speakOutput = `Did you say ${cocktail} ${drinkId}?`
+        var drink = data.drinks[0];
+        var drinkId = drink.idDrink;
+        console.log(drinkId);
+        sessionAttributes.speakOutput = getIngredientResponse(drink);
         sessionAttributes.repromptSpeech = 'Need more help?';
 
         resolve(
@@ -63,6 +65,35 @@ function getCocktail(cocktailName, callback) {
     .then(response => {
       callback(response.data);
     });
+}
+
+function getIngredientResponse(cocktailObj) {
+  var response = "You will need ";
+  var ingredientArr = getItemArray(cocktailObj, "strIngredient");
+  var measureArr = getItemArray(cocktailObj, "strMeasure");
+
+  const len = ingredientArr.length;
+  for (var i = 0; i < len; i++) {
+    if (measureArr[i]) {
+      response += measureArr[i] + "of " + ingredientArr[i] + ", ";
+    }
+    else {
+      response += ingredientArr[i];
+    }
+  }
+  
+  response += ". " + cocktailObj.strInstructions;
+  return response;
+}
+
+function getItemArray(cocktailObj, prefix) {
+  var response = [];
+  for (var i =1; i<=15; i++) { 
+    if (cocktailObj[prefix + i]) {
+      response.push(cocktailObj[prefix + i]); 
+    } 
+  }
+  return response;
 }
 
 const HelpHandler = {
