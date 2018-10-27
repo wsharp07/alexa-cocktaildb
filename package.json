@@ -1,0 +1,13 @@
+{
+  "name": "skill-cocktail-db",
+  "version": "2.0.0",
+  "description": "Skill to lookup cocktails",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "ask-sdk": "^2.0.0",
+    "request": "^2.88.0"
+  }
+}
