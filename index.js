@@ -39,27 +39,62 @@ const CocktailHandler = {
     const cocktail = slots['cocktail'].value;
     console.log("cocktail: " + cocktail);
     
-    const url = `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${cocktail}`;
-        
-    const getCocktail = async url => {
-      try {
-        const response = await axios.get(url);
-        console.log(response.data);
-        return response.data;
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    return new Promise(resolve => {
+      getCocktail(cocktail, data => {
+        var drink = data.drinks[0];
+        var drinkId = drink.idDrink;
+        console.log(drinkId);
+        sessionAttributes.speakOutput = getIngredientResponse(drink);
+        sessionAttributes.repromptSpeech = 'Need more help?';
 
-    sessionAttributes.speakOutput = `Did you say ${cocktail}?`
-    sessionAttributes.repromptSpeech = 'Need more help?';
-    
-    return handlerInput.responseBuilder
-      .speak(sessionAttributes.speakOutput)
-      .reprompt(sessionAttributes.repromptSpeech)
-      .getResponse();
+        resolve(
+          handlerInput.responseBuilder
+            .speak(sessionAttributes.speakOutput)
+            .reprompt(sessionAttributes.repromptSpeech)
+            .getResponse()
+        );
+      });
+    });
   }
 };
+
+function getCocktail(cocktailName, callback) {
+  const baseURL = "https://www.thecocktaildb.com/api/json/v1/1/search.php?s=";
+  axios
+    .get(baseURL + cocktailName)
+    .then(response => {
+      callback(response.data);
+    });
+}
+
+function getIngredientResponse(cocktailObj) {
+  var response = "You will need ";
+  var ingredientArr = getItemArray(cocktailObj, "strIngredient");
+  var measureArr = getItemArray(cocktailObj, "strMeasure");
+
+  const len = ingredientArr.length;
+  for (var i = 0; i < len; i++) {
+    if (measureArr[i]) {
+      response += measureArr[i] + "of " + ingredientArr[i] + ", ";
+    }
+    else {
+      response += ingredientArr[i];
+    }
+  }
+  
+  response += ". " + cocktailObj.strInstructions;
+  return response;
+}
+
+function getItemArray(cocktailObj, prefix) {
+  var response = [];
+  for (var i =1; i<=15; i++) { 
+    if (cocktailObj[prefix + i]) {
+      response.push(cocktailObj[prefix + i]); 
+    } 
+  }
+  return response;
+}
 
 const HelpHandler = {
   canHandle(handlerInput) {
