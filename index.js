@@ -39,27 +39,31 @@ const CocktailHandler = {
     const cocktail = slots['cocktail'].value;
     console.log("cocktail: " + cocktail);
     
-    const url = `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${cocktail}`;
-        
-    const getCocktail = async url => {
-      try {
-        const response = await axios.get(url);
-        console.log(response.data);
-        return response.data;
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    return new Promise(resolve => {
+      getCocktail(cocktail, data => {
+        var drinkId = data.drinks[0].idDrink;
+        sessionAttributes.speakOutput = `Did you say ${cocktail} ${drinkId}?`
+        sessionAttributes.repromptSpeech = 'Need more help?';
 
-    sessionAttributes.speakOutput = `Did you say ${cocktail}?`
-    sessionAttributes.repromptSpeech = 'Need more help?';
-    
-    return handlerInput.responseBuilder
-      .speak(sessionAttributes.speakOutput)
-      .reprompt(sessionAttributes.repromptSpeech)
-      .getResponse();
+        resolve(
+          handlerInput.responseBuilder
+            .speak(sessionAttributes.speakOutput)
+            .reprompt(sessionAttributes.repromptSpeech)
+            .getResponse()
+        );
+      });
+    });
   }
 };
+
+function getCocktail(cocktailName, callback) {
+  const baseURL = "https://www.thecocktaildb.com/api/json/v1/1/search.php?s=";
+  axios
+    .get(baseURL + cocktailName)
+    .then(response => {
+      callback(response.data);
+    });
+}
 
 const HelpHandler = {
   canHandle(handlerInput) {
